@@ -1,5 +1,5 @@
 import React, { useRef, useEffect } from "react";
-import { Send, ArrowUp } from "lucide-react";
+import { ArrowUp } from "lucide-react";
 
 const InputBar = ({ input, setInput, onSendMessage, isLoading }) => {
   const textareaRef = useRef(null);
@@ -30,11 +30,11 @@ const InputBar = ({ input, setInput, onSendMessage, isLoading }) => {
   }, [input]);
 
   return (
-    <div className="p-4 bg-[var(--bg-primary)]/80 backdrop-blur-md sticky bottom-0 z-10">
-      <div className="max-w-4xl mx-auto relative flex items-end gap-2 p-2 bg-[var(--bg-secondary)] border border-[var(--border-color)] rounded-2xl shadow-lg transition-all focus-within:ring-2 focus-within:ring-[var(--accent-primary)]/20 focus-within:border-[var(--accent-primary)]/50">
+    <div className="w-full max-w-3xl mx-auto px-4 pb-6 pt-2">
+      <div className="relative flex flex-col bg-slate-900/80 backdrop-blur-md border border-white/10 rounded-3xl shadow-lg ring-1 ring-white/5 focus-within:ring-white/10 transition-all">
         <textarea
           ref={textareaRef}
-          className="w-full bg-transparent text-[var(--text-primary)] placeholder-[var(--text-tertiary)] text-base p-3 max-h-40 min-h-[50px] resize-none focus:outline-none scrollbar-hide"
+          className="w-full bg-transparent text-slate-200 placeholder-slate-500 text-[15px] px-4 py-3.5 max-h-[200px] min-h-[52px] resize-none focus:outline-none scrollbar-hide"
           rows={1}
           placeholder="Describe your legal situation..."
           value={input}
@@ -42,23 +42,20 @@ const InputBar = ({ input, setInput, onSendMessage, isLoading }) => {
           onKeyDown={handleKeyDown}
           disabled={isLoading}
         />
-        <button
-          onClick={handleSubmit}
-          disabled={isLoading || !input.trim()}
-          className="mb-1 p-2.5 rounded-xl bg-[var(--accent-primary)] text-white hover:bg-[var(--accent-hover)] disabled:bg-[var(--bg-tertiary)] disabled:text-[var(--text-tertiary)] transition-all shadow-md hover:shadow-glow active:scale-95 disabled:shadow-none"
-        >
-          {isLoading ? (
-            <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-          ) : (
-            <ArrowUp size={20} strokeWidth={3} />
-          )}
-        </button>
+        
+        <div className="absolute right-2 bottom-2">
+          <button
+            onClick={handleSubmit}
+            disabled={isLoading || !input.trim()}
+            className="p-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:bg-slate-700 disabled:text-slate-500 text-white transition-all shadow-sm"
+          >
+            <ArrowUp size={18} strokeWidth={3} />
+          </button>
+        </div>
       </div>
-      <div className="text-center mt-2">
-        <p className="text-xs text-[var(--text-tertiary)]">
-          NyayVidhi can make mistakes. Consider checking important information.
-        </p>
-      </div>
+      <p className="text-center text-[10px] text-slate-600 mt-2.5">
+        NyayVidhi can make mistakes. Please consult a qualified lawyer.
+      </p>
     </div>
   );
 };
