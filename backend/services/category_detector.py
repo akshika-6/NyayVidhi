@@ -135,11 +135,12 @@ def detect_category_by_llm(query: str) -> tuple:
         query: User's legal question
         
     Returns:
-        tuple: (category_name, urgency)
+        tuple: (category_name, confidence)
     """
-    categories_list = list(LEGAL_CATEGORIES.keys())
-    
-    prompt = f"""You are a legal category classifier for Indian law.
+    try:
+        categories_list = list(LEGAL_CATEGORIES.keys())
+        
+        prompt = f"""You are a legal category classifier for Indian law.
 
 Available categories:
 {', '.join(categories_list)}
@@ -152,7 +153,6 @@ Return ONLY the category name from the list above. If none match perfectly, retu
 
 Category:"""
 
-    try:
         response = groq_client.chat.completions.create(
             model="llama-3.3-70b-versatile",
             messages=[{"role": "user", "content": prompt}],
@@ -162,11 +162,18 @@ Category:"""
         
         category = response.choices[0].message.content.strip()
         
+        # Clean up response (remove punctuation etc)
+        category = category.replace('"', '').replace("'", "").strip()
+        
         # Validate category
-        if category in categories_list:
-            return category, 0.7  # LLM confidence
-        else:
-            return "General Legal Query", 0.5
+        # Simple fuzzy match in case LLM adds extra text
+        found_cat = "General Legal Query"
+        for cat in categories_list:
+            if cat.lower() in category.lower():
+                found_cat = cat
+                break
+
+        return found_cat, 0.7
             
     except Exception as e:
         print(f"LLM classification error: {e}")

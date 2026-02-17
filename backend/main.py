@@ -5,12 +5,15 @@ from backend.services.legal_service import ask_legal_question
 from backend.api.lawyer_routes import router as lawyer_router
 from backend.api.chat_routes import router as chat_router
 from backend.services.strategy_service import generate_case_strategy
+from backend.api.auth import router as auth_router
 
 app = FastAPI(
     title="NyayVidhi Legal AI",
     description="India's Free Legal Awareness & Guidance Platform",
     version="2.0.0"
 )
+
+app.include_router(auth_router)
 
 # Allow React frontend
 app.add_middleware(
@@ -27,6 +30,7 @@ app.include_router(chat_router)
 
 class QueryRequest(BaseModel):
     question: str
+    preferred_language: str = "English"
 
 @app.get("/")
 def root():
@@ -60,3 +64,4 @@ class StrategyRequest(BaseModel):
 @app.post("/strategy/generate")
 def get_case_strategy(req: StrategyRequest):
     return generate_case_strategy(req.model_dump())
+    return ask_legal_question(req.question, req.preferred_language)

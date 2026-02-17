@@ -49,6 +49,13 @@ const AnalysisPanel = ({
 
     const showSignals = analysis.category || analysis.urgency || analysis.rate_limit || analysis.matched_count;
 
+    // Ensure summary is always a string
+    const summaryText = typeof analysis.summary === 'string' 
+      ? analysis.summary 
+      : (analysis.summary && typeof analysis.summary === 'object')
+        ? JSON.stringify(analysis.summary)
+        : String(analysis.summary || '');
+
     return (
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
          {/* Summary */}
@@ -57,7 +64,7 @@ const AnalysisPanel = ({
               <span className="w-1 h-1 rounded-full bg-indigo-400"></span>
               Summary
             </h3>
-            <h2 className="text-base font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-300 to-indigo-100 leading-snug">{analysis.summary}</h2>
+            <h2 className="text-base font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-300 to-indigo-100 leading-snug">{summaryText}</h2>
          </div>
 
          {/* Tags */}

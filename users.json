@@ -1,0 +1,24 @@
+{
+    "test3@example.com": {
+        "name": "Test",
+        "email": "test3@example.com",
+        "password": "$pbkdf2-sha256$29000$wThHyDlHqDWGsPaeU0rpXQ$AdzTU40ebgmg.Q7I9Tl6qRqgOd/q/I6S9oReA0a1JjM"
+    },
+    "akshika27ak@gmail.com": {
+        "name": "akshika gupta",
+        "email": "akshika27ak@gmail.com",
+        "password": "$pbkdf2-sha256$29000$HWOsNcaYs1YqhTDm3Nu7tw$NaTpjNBknACwWNAvnidfAG7bl09GQ9RYEsrVk6L1Hgc"
+    },
+    "kanishka@gmail.com": {
+        "name": "kanishka Agarwal",
+        "email": "kanishka@gmail.com",
+        "password": "$pbkdf2-sha256$29000$QwjB.P8fg9Ba613r3du7dw$im41M/WP4eS5UeiYBALEX8o.hKNtTjPeNeY0d800P/s",
+        "preferred_language": "Hindi"
+    },
+    "aditya@gmail.com": {
+        "name": "aditya raj",
+        "email": "aditya@gmail.com",
+        "password": "$pbkdf2-sha256$29000$09p7b815Tykl5LxXynlP6Q$4Jn9.KNFrpfgob7SI8MGk4NWmT7Ew40RH.Ho5DtZffU",
+        "preferred_language": "Bengali"
+    }
+}
