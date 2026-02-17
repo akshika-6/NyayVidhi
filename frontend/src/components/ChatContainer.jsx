@@ -1,37 +1,48 @@
-import React, { useState } from 'react';
-import ChatWindow from './ChatWindow';
-import LegalCard from './LegalCard';
-import { BookOpen } from 'lucide-react';
-import Sidebar from './Sidebar'; // Import Sidebar
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import Sidebar from "./layout/Sidebar";
+import ChatWindow from "./layout/ChatWindow";
+import AnalysisPanel from "./layout/AnalysisPanel";
 
-const API_URL = 'http://127.0.0.1:8000/ask';
+const API_URL = "http://127.0.0.1:8000/ask";
 
 function ChatContainer() {
   const [messages, setMessages] = useState([]);
   const [currentLegalAnalysis, setCurrentLegalAnalysis] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [input, setInput] = useState(''); // State for the ChatInput
+  const [input, setInput] = useState("");
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isAnalysisOpen, setIsAnalysisOpen] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(true);
 
-  const handleSendMessage = async (question) => {
+  useEffect(() => {
+    document.documentElement.classList.toggle("dark", isDarkMode);
+    document.documentElement.classList.toggle("light", !isDarkMode);
+  }, [isDarkMode]);
+
+  const handleSendMessage = useCallback(async (question) => {
     if (isLoading || !question.trim()) return;
-    
+
     setIsLoading(true);
-    setCurrentLegalAnalysis(null); // Clear previous analysis when new question is asked
-    
-    // Add user message to chat history
-    setMessages(prev => [...prev, { id: Date.now(), sender: 'user', text: question }]);
+    setCurrentLegalAnalysis(null);
+
+    const userMessage = {
+      id: `${Date.now()}-user`,
+      sender: "user",
+      text: question,
+    };
+    setMessages((prev) => [...prev, userMessage]);
 
     try {
       const response = await fetch(API_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ question }),
       });
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      
+
       const data = await response.json();
       const normalized = {
         summary: data.summary || "",
@@ -42,17 +53,17 @@ function ChatContainer() {
       };
 
       setCurrentLegalAnalysis(normalized);
-      setMessages(prev => [
+      setMessages((prev) => [
         ...prev,
         {
-          id: Date.now() + 1,
-          sender: 'assistant',
+          id: `${Date.now()}-assistant`,
+          sender: "assistant",
           text: normalized.summary,
           sections: normalized.sections,
           confidence: normalized.confidence,
         },
       ]);
-
+      setIsAnalysisOpen(true);
     } catch (error) {
       console.error("API call failed:", error);
       const fallback = {
@@ -60,58 +71,79 @@ function ChatContainer() {
         legal_reasoning: "Sorry, something went wrong. Please check the backend connection and try again.",
         confidence: "low",
         sections: [],
-        disclaimer: "This is not legal advice."
+        disclaimer: "This is not legal advice.",
       };
       setCurrentLegalAnalysis(fallback);
-      setMessages(prev => [
+      setMessages((prev) => [
         ...prev,
         {
-          id: Date.now() + 1,
-          sender: 'assistant',
+          id: `${Date.now()}-assistant`,
+          sender: "assistant",
           text: fallback.summary,
           sections: fallback.sections,
           confidence: fallback.confidence,
         },
       ]);
+      setIsAnalysisOpen(true);
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [isLoading]);
 
-  const handleClearConversation = () => {
+  const handleClearConversation = useCallback(() => {
     setMessages([]);
     setCurrentLegalAnalysis(null);
-    setInput('');
+    setInput("");
     setIsLoading(false);
-  };
+  }, []);
+
+  const handleToggleTheme = useCallback(() => {
+    setIsDarkMode((prev) => !prev);
+  }, []);
+
+  const stableMessages = useMemo(() => messages, [messages]);
 
   return (
-    <div className="flex h-screen w-full flex-row bg-background text-text-primary overflow-hidden">
-      {/* Left Sidebar */}
-      <Sidebar onClearConversation={handleClearConversation} />
+    <div className="flex h-screen w-full overflow-hidden bg-[var(--bg-primary)] text-[var(--text-primary)] font-sans selection:bg-[var(--accent-primary)] selection:text-white">
+      <Sidebar
+        onClearConversation={handleClearConversation}
+        onToggleTheme={handleToggleTheme}
+        isDarkMode={isDarkMode}
+      />
 
-      {/* Center Chat Panel */}
-      <div className="flex-1 min-w-0 bg-background">
-        <ChatWindow 
-          messages={messages} 
-          isLoading={isLoading} 
+      <div className="flex-1 min-w-0 relative flex flex-col">
+        <ChatWindow
+          messages={stableMessages}
+          isLoading={isLoading}
           onSendMessage={handleSendMessage}
           input={input}
           setInput={setInput}
+          onOpenSidebar={() => setIsSidebarOpen(true)}
+          onOpenAnalysis={() => setIsAnalysisOpen(true)}
         />
       </div>
 
-      {/* Right Legal Analysis Panel */}
-      <aside className="w-[320px] sm:w-[360px] lg:w-[400px] shrink-0 bg-panel border-l border-border flex flex-col p-6 overflow-y-auto">
-        {currentLegalAnalysis || isLoading ? (
-          <LegalCard analysis={currentLegalAnalysis} isStreaming={isLoading} />
-        ) : (
-          <div className="flex flex-col items-center justify-center h-full text-center text-text-secondary text-lg">
-            <BookOpen className="w-16 h-16 text-gray-600 mb-4" />
-            <p>Your legal analysis will appear here.</p>
-          </div>
-        )}
-      </aside>
+      <AnalysisPanel
+        analysis={currentLegalAnalysis}
+        isLoading={isLoading}
+      />
+
+      <Sidebar
+        variant="drawer"
+        isOpen={isSidebarOpen}
+        onClose={() => setIsSidebarOpen(false)}
+        onClearConversation={handleClearConversation}
+        onToggleTheme={handleToggleTheme}
+        isDarkMode={isDarkMode}
+      />
+
+      <AnalysisPanel
+        variant="drawer"
+        isOpen={isAnalysisOpen}
+        onClose={() => setIsAnalysisOpen(false)}
+        analysis={currentLegalAnalysis}
+        isLoading={isLoading}
+      />
     </div>
   );
 }

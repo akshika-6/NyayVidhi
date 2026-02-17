@@ -1,6 +1,6 @@
 from backend.rag.retriever import search_legal_context
 from backend.rag.generator import generate_legal_response
-
+from backend.services.intent_service import classify_intent
 
 
 def ask_legal_question(query: str) -> dict:
@@ -8,8 +8,9 @@ def ask_legal_question(query: str) -> dict:
     Orchestrates the RAG pipeline to answer a legal question.
 
     Steps:
-    1. Retrieves relevant legal contexts based on the query.
-    2. Generates a structured legal response using the query and contexts.
+    1. Classifies the intent of the question.
+    2. Retrieves relevant legal contexts based on the query.
+    3. Generates a structured legal response using the query, contexts, and intent.
 
     Args:
         query (str): The user's legal question.
@@ -17,6 +18,12 @@ def ask_legal_question(query: str) -> dict:
     Returns:
         dict: A structured JSON response containing summary, legal reasoning, etc.
     """
+    print(f"Service: Analysing intent for query: '{query}'")
+    
+    # 0. Classify Intent
+    intent = classify_intent(query)
+    print(f"Service: Detected Intent -> {intent}")
+
     print(f"Service: Searching for contexts for query: '{query}'")
     # 1. Call search_legal_context from rag/retriever.py
     contexts = search_legal_context(query)
@@ -33,8 +40,8 @@ def ask_legal_question(query: str) -> dict:
         }
 
     print(f"Service: Found {len(contexts)} relevant contexts. Generating response...")
-    # 2. Pass results to generate_legal_response from rag/generator.py
-    structured_response = generate_legal_response(query, contexts)
+    # 2. Pass results to generate_legal_response from rag/generator.py with intent
+    structured_response = generate_legal_response(query, contexts, intent=intent)
     
     # 3. Return final structured JSON
     print("Service: Legal response generated.")

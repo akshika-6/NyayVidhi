@@ -26,9 +26,10 @@ def _call_groq_llm(prompt: str) -> str:
 
 
 # ---------------- PROMPT BUILDER ----------------
-def build_legal_prompt(query: str, contexts: list[dict]) -> str:
-    """Creates grounded legal classification prompt"""
+# ---------------- PROMPT BUILDERS ----------------
 
+def build_offence_prompt(query: str, contexts: list[dict]) -> str:
+    """Prompt for classifying an offence (Standard Flow)"""
     context_block = "\n\n".join(
         f"[Document: {ctx['source']} | Similarity: {ctx['score']:.3f}]\n{ctx['text']}"
         for ctx in contexts
@@ -75,6 +76,66 @@ Output STRICT JSON:
 }}
 """
 
+def build_punishment_prompt(query: str, contexts: list[dict]) -> str:
+    """Prompt for extracting punishment details"""
+    context_block = "\n\n".join(
+        f"[Document: {ctx['source']}]\n{ctx['text']}"
+        for ctx in contexts
+    )
+
+    return f"""
+You are NyayVidhi.
+The user is asking about the PUNISHMENT for a specific offence.
+
+Using the provided LEGAL CONTEXT, extract the exact punishment (imprisonment term, fine, or both).
+
+USER QUESTION:
+{query}
+
+LEGAL CONTEXT:
+{context_block}
+
+Output STRICT JSON:
+{{
+ "summary": "Punishment for [Offence Name]",
+ "legal_reasoning": "The prescribed punishment is [Details from context].",
+ "sections": ["Relevant IPC Section"],
+ "citations": [],
+ "confidence": "high",
+ "disclaimer": "This is not legal advice"
+}}
+"""
+
+def build_explanation_prompt(query: str, contexts: list[dict]) -> str:
+    """Prompt for explaining a legal concept"""
+    context_block = "\n\n".join(
+        f"[Document: {ctx['source']}]\n{ctx['text']}"
+        for ctx in contexts
+    )
+
+    return f"""
+You are NyayVidhi.
+The user is asking for an EXPLANATION of a legal concept or section.
+
+Using the provided LEGAL CONTEXT, explain the concept simply and clearly.
+
+USER QUESTION:
+{query}
+
+LEGAL CONTEXT:
+{context_block}
+
+Output STRICT JSON:
+{{
+ "summary": "Explanation of [Concept]",
+ "legal_reasoning": "[Clear explanation of the concept based on context]",
+ "sections": ["Relevant IPC Section"],
+ "citations": [],
+ "confidence": "high",
+ "disclaimer": "This is not legal advice"
+}}
+"""
+
 
 # ---------------- SAFE JSON PARSER ----------------
 def _safe_json_parse(text: str) -> dict:
@@ -98,12 +159,18 @@ def _safe_json_parse(text: str) -> dict:
 
 
 # ---------------- MAIN FUNCTION ----------------
-def generate_legal_response(query: str, contexts: list[dict]) -> dict:
-    """Generate structured legal explanation"""
+def generate_legal_response(query: str, contexts: list[dict], intent: str = "offence_description") -> dict:
+    """Generate structured legal explanation based on intent"""
 
-    prompt = build_legal_prompt(query, contexts)
+    if intent == "punishment_query":
+        prompt = build_punishment_prompt(query, contexts)
+    elif intent == "legal_information":
+        prompt = build_explanation_prompt(query, contexts)
+    else:
+        # Default fallback
+        prompt = build_offence_prompt(query, contexts)
 
-    print("\n===== PROMPT SENT TO LLM =====\n")
+    print(f"\n===== PROMPT SENT TO LLM (Intent: {intent}) =====\n")
     print(prompt[:1500])  # trimmed for logs
     print("\n===============================\n")
 
