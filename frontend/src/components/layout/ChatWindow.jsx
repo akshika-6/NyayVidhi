@@ -12,7 +12,9 @@ const ChatWindow = ({
   onSendMessage,
   onOpenSidebar,
   onOpenAnalysis,
-  isAnalysisOpen
+  isAnalysisOpen,
+  preferredLanguage,
+  onChangeLanguage,
 }) => {
   const messagesEndRef = useRef(null);
 
@@ -51,15 +53,36 @@ const ChatWindow = ({
 
       {/* Desktop Top Bar */}
       <header className="hidden md:flex shrink-0 h-20 items-center justify-between px-8 sticky top-0 z-20 bg-gradient-to-b from-slate-900/80 via-slate-900/40 to-transparent border-b border-indigo-500/10 backdrop-blur-sm">
-         <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-500/30">
-              <Sparkles size={20} className="text-white" />
-            </div>
-            <div>
-              <div className="font-bold text-lg bg-gradient-to-r from-indigo-400 to-indigo-300 bg-clip-text text-transparent">NyayVidhi</div>
-              <div className="text-xs text-slate-500">Legal AI Assistant</div>
-            </div>
-         </div>
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-500/30">
+            <Sparkles size={20} className="text-white" />
+          </div>
+          <div>
+            <div className="font-bold text-lg bg-gradient-to-r from-indigo-400 to-indigo-300 bg-clip-text text-transparent">NyayVidhi</div>
+            <div className="text-xs text-slate-500">Legal AI Assistant</div>
+          </div>
+        </div>
+        <div className="flex items-center gap-3">
+          <span className="text-xs text-slate-500 uppercase tracking-wider font-semibold">
+            Language
+          </span>
+          <select
+            value={preferredLanguage}
+            onChange={(e) => onChangeLanguage?.(e.target.value)}
+            className="bg-slate-900/80 border border-indigo-500/30 text-xs text-slate-100 rounded-lg px-3 py-1.5 focus:outline-none focus:border-indigo-400 focus:ring-1 focus:ring-indigo-400 cursor-pointer"
+          >
+            <option value="English">English</option>
+            <option value="Hindi">Hindi (हिन्दी)</option>
+            <option value="Marathi">Marathi (मराठी)</option>
+            <option value="Gujarati">Gujarati (ગુજરાતી)</option>
+            <option value="Tamil">Tamil (தமிழ்)</option>
+            <option value="Telugu">Telugu (తెలుగు)</option>
+            <option value="Kannada">Kannada (ಕನ್ನಡ)</option>
+            <option value="Bengali">Bengali (বাংলা)</option>
+            <option value="Malayalam">Malayalam (മലയാളം)</option>
+            <option value="Punjabi">Punjabi (ਪੰਜਾਬੀ)</option>
+          </select>
+        </div>
       </header>
 
       {/* Messages Area - Centered Column */}

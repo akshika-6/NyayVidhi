@@ -27,22 +27,33 @@ TOP_K = 5
 @lru_cache(maxsize=1)
 def load_resources():
     print("Loading vector database...")
+    
+    if not INDEX_PATH.exists() or not META_PATH.exists():
+        print(f"Vector Database not found at {VECTORSTORE_DIR}. Please run ingest.py first.")
+        return None, None, None
 
-    index = faiss.read_index(str(INDEX_PATH))
+    try:
+        index = faiss.read_index(str(INDEX_PATH))
 
-    with open(META_PATH, "rb") as f:
-        metadata = pickle.load(f)
+        with open(META_PATH, "rb") as f:
+            metadata = pickle.load(f)
 
-    model = SentenceTransformer(EMBEDDING_MODEL)
+        model = SentenceTransformer(EMBEDDING_MODEL)
 
-    print("Retriever ready.")
-    return index, metadata, model
+        print("Retriever ready.")
+        return index, metadata, model
+    except Exception as e:
+        print(f"Error loading vector store: {e}")
+        return None, None, None
 
 
 
 # ---------- Search Function ----------
 def search_legal_context(query: str, k: int = 5) -> list[dict]:
     index, metadata, model = load_resources()
+
+    if index is None or model is None:
+        return []
 
     # Create normalized query embedding (cosine similarity)
     query_embedding = model.encode(

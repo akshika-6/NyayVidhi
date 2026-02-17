@@ -31,12 +31,12 @@ def validate_legal_query(query: str) -> dict:
             "reason": "too_short"
         }
     
-    # Check if it's just random characters or numbers
-    if re.match(r'^[^a-zA-Z]*$', query) or re.match(r'^[a-zA-Z]{1,3}$', query):
+    # Check if it's just symbols/numbers (allowing Unicode letters for Hindi/others)
+    if not any(c.isalpha() for c in query):
         return {
             "is_valid": False,
             "error_message": "Please enter a valid legal question related to Indian law.",
-            "reason": "random_text"
+            "reason": "no_letters"
         }
     
     # Check for common non-questions
