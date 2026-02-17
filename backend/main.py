@@ -4,6 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from backend.services.legal_service import ask_legal_question
 from backend.api.lawyer_routes import router as lawyer_router
 from backend.api.chat_routes import router as chat_router
+from backend.services.strategy_service import generate_case_strategy
 
 app = FastAPI(
     title="NyayVidhi Legal AI",
@@ -45,3 +46,17 @@ def root():
 def ask_question(req: QueryRequest):
     """Legacy endpoint for legal AI assistant"""
     return ask_legal_question(req.question)
+
+class StrategyRequest(BaseModel):
+    businessType: str
+    disputeType: str
+    contractExists: str
+    amountInvolved: str
+    opponentType: str
+    urgency: str
+    jurisdiction: str
+    description: str
+
+@app.post("/strategy/generate")
+def get_case_strategy(req: StrategyRequest):
+    return generate_case_strategy(req.model_dump())

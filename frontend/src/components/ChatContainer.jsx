@@ -6,8 +6,7 @@ import { PanelRightOpen } from "lucide-react";
 
 const API_BASE_URL = "http://127.0.0.1:8001";
 
-function ChatContainer() {
-  const [messages, setMessages] = useState([]);
+function ChatContainer({ messages, setMessages }) { // Accept messages and setMessages as props
   const [currentAnalysis, setCurrentAnalysis] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [input, setInput] = useState("");
@@ -76,7 +75,7 @@ function ChatContainer() {
     } finally {
       setIsLoading(false);
     }
-  }, [isLoading]);
+  }, [isLoading, setMessages]); // Add setMessages to dependency array
 
 
   const handleClear = () => {

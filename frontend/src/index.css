@@ -27,7 +27,7 @@
   }
   
   body {
-    @apply bg-[var(--color-bg-primary)] text-[var(--color-text-primary)] font-sans antialiased overflow-hidden;
+    @apply bg-[var(--color-bg-primary)] text-[var(--color-text-primary)] font-sans antialiased overflow-auto;
   }
 }
 
