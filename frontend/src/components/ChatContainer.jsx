@@ -2,10 +2,9 @@ import React, { useCallback, useState } from "react";
 import Sidebar from "./layout/Sidebar";
 import ChatWindow from "./layout/ChatWindow";
 import AnalysisPanel from "./layout/AnalysisPanel";
-import { PanelRightOpen, PanelRightClose } from "lucide-react";
+import { PanelRightOpen } from "lucide-react";
 
-// Mock Service Call Wrapper (Replace with real later if needed, mostly logic is same)
-const API_URL = "http://127.0.0.1:8001/ask";
+const API_BASE_URL = "http://127.0.0.1:8001";
 
 function ChatContainer() {
   const [messages, setMessages] = useState([]);
@@ -19,45 +18,57 @@ function ChatContainer() {
     if (isLoading || !question.trim()) return;
 
     setIsLoading(true);
-    // Optimistic User Message
     const userMsg = { id: `u-${Date.now()}`, sender: "user", text: question };
     setMessages(prev => [...prev, userMsg]);
     
-    // Reset analysis panel focus
     if (window.innerWidth < 768) setIsAnalysisOpen(false); 
 
     try {
-      const response = await fetch(API_URL, {
+      // --- Parallel API Calls ---
+      const askPromise = fetch(`${API_BASE_URL}/ask`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question }),
+        body: JSON.stringify({ question: question }),
       });
 
-      if (!response.ok) throw new Error("API Error");
+      const lawyerPromise = fetch(`${API_BASE_URL}/lawyer/ask`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ user_query: question }),
+      });
 
-      const data = await response.json();
-      
-      const analysisData = {
-         summary: data.summary,
-         legal_reasoning: data.legal_reasoning,
-         sections: data.sections || [],
-         citations: data.citations || [],
-         confidence: data.confidence,
-         disclaimer: data.disclaimer
+      const [askResponse, lawyerResponse] = await Promise.all([askPromise, lawyerPromise]);
+
+      if (!askResponse.ok || !lawyerResponse.ok) {
+        throw new Error("One or more API calls failed");
+      }
+
+      const askData = await askResponse.json();
+      const lawyerData = await lawyerResponse.json();
+
+      // --- Construct Messages ---
+      const botMsg = {
+        id: `b-${Date.now()}`,
+        sender: "assistant",
+        text: askData.summary || "No detailed response available."
       };
 
-      setCurrentAnalysis(analysisData);
-      
-      // Display response naturally without robotic labels
-      const messageText = data.summary || "No response available.";
-      
-      const botMsg = { 
-        id: `b-${Date.now()}`, 
-        sender: "assistant", 
-        text: messageText
+      const ctaMsg = {
+        id: `m-${Date.now()}`,
+        sender: "assistant",
+        type: "lawyer_cta",
+        data: {
+          query: question,
+          category: lawyerData.category,
+          urgency: lawyerData.urgency,
+          matched_lawyers: lawyerData.matched_lawyers || [],
+          rate_limit: lawyerData.rate_limit,
+          ai_summary: lawyerData.ai_summary 
+        }
       };
-      
-      setMessages(prev => [...prev, botMsg]);
+
+      // Add both messages to the state
+      setMessages(prev => [...prev, botMsg, ctaMsg]);
 
     } catch (e) {
       console.error(e);
@@ -66,6 +77,7 @@ function ChatContainer() {
       setIsLoading(false);
     }
   }, [isLoading]);
+
 
   const handleClear = () => {
     setMessages([]);

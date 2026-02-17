@@ -47,6 +47,8 @@ const AnalysisPanel = ({
       );
     }
 
+    const showSignals = analysis.category || analysis.urgency || analysis.rate_limit || analysis.matched_count;
+
     return (
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
          {/* Summary */}
@@ -76,16 +78,47 @@ const AnalysisPanel = ({
             )}
          </div>
 
-         <SectionCard title="Legal Reasoning" icon={Book}>
-            {analysis.legal_reasoning}
-         </SectionCard>
+         {showSignals && (
+           <SectionCard title="Case Signals" icon={ChevronRight}>
+             <div className="space-y-2">
+               {analysis.category && (
+                 <div>
+                   <span className="text-slate-400">Category:</span> {analysis.category}
+                 </div>
+               )}
+               {analysis.urgency && (
+                 <div>
+                   <span className="text-slate-400">Urgency:</span> {analysis.urgency}
+                 </div>
+               )}
+               {analysis.matched_count !== undefined && (
+                 <div>
+                   <span className="text-slate-400">Matched lawyers:</span> {analysis.matched_count}
+                 </div>
+               )}
+               {analysis.rate_limit && (
+                 <div>
+                   <span className="text-slate-400">Queries remaining:</span> {analysis.rate_limit.queries_remaining}
+                 </div>
+               )}
+             </div>
+           </SectionCard>
+         )}
 
-         <div className="p-4 rounded-xl bg-gradient-to-br from-amber-500/10 to-amber-600/10 border border-amber-500/20 hover:border-amber-500/30 flex gap-3 items-start transition-all duration-300 hover:shadow-lg hover:shadow-amber-500/10">
-            <AlertTriangle size={16} className="text-amber-400 mt-0.5 shrink-0 drop-shadow-lg" />
-            <p className="text-xs text-amber-200/80 leading-relaxed font-medium">
+         {analysis.legal_reasoning && (
+           <SectionCard title="Legal Reasoning" icon={Book}>
+             {analysis.legal_reasoning}
+           </SectionCard>
+         )}
+
+         {analysis.disclaimer && (
+           <div className="p-4 rounded-xl bg-gradient-to-br from-amber-500/10 to-amber-600/10 border border-amber-500/20 hover:border-amber-500/30 flex gap-3 items-start transition-all duration-300 hover:shadow-lg hover:shadow-amber-500/10">
+             <AlertTriangle size={16} className="text-amber-400 mt-0.5 shrink-0 drop-shadow-lg" />
+             <p className="text-xs text-amber-200/80 leading-relaxed font-medium">
                {analysis.disclaimer}
-            </p>
-         </div>
+             </p>
+           </div>
+         )}
       </div>
     );
   };

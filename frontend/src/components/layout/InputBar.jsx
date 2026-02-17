@@ -38,7 +38,7 @@ const InputBar = ({ input, setInput, onSendMessage, isLoading }) => {
           ref={textareaRef}
           className="w-full bg-transparent text-slate-100 placeholder-slate-500 text-[15px] px-5 py-4 max-h-[200px] min-h-[56px] resize-none focus:outline-none scrollbar-hide font-medium"
           rows={1}
-          placeholder="Ask about any IPC section, law, or your legal situation..."
+          placeholder="Ask a legal question to match with lawyers..."
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
