@@ -60,84 +60,172 @@ def _compress_context(contexts: list[dict], max_chars: int = 1200) -> list[dict]
 # ---------------- PROMPT BUILDERS ----------------
 def build_offence_prompt(query: str, contexts: list[dict]) -> str:
     context_block = "\n\n".join(
-        f"[Document: {ctx['source']} | Similarity: {ctx['score']:.3f}]\n{ctx['text']}"
+        f"[Legal Reference]\n{ctx['text']}"
         for ctx in contexts
     )
 
     return f"""
-You are NyayVidhi — Indian Legal Reasoning Engine.
+You are a senior Indian criminal lawyer.
 
-Classify the offence from the IPC.
+Give answers in a clean, structured, and highly readable format.
 
-USER QUESTION:
+STRICT FORMAT RULES:
+1. Maximum 8-12 lines total
+2. No long paragraphs
+3. Use short bullet points
+4. Be precise and legally accurate
+5. Mention correct legal sections
+6. Mention punishment clearly
+7. Provide clear action steps
+8. Do NOT add disclaimers
+9. Do NOT write unnecessary explanations
+
+USE THIS EXACT FORMAT:
+
+⚖️ Offence:
+(Write exact applicable offence)
+
+📘 Applicable Law:
+- Section ___ IPC
+- Section ___ POCSO (if minor involved)
+- Section ___ BNS (if applicable)
+
+🔍 Why it applies:
+(1-2 short lines only)
+
+⛔ Punishment:
+(Clearly mention imprisonment + fine)
+
+🚨 What should be done immediately:
+- Step 1
+- Step 2
+- Step 3
+
+CLIENT QUESTION:
 {query}
 
-LEGAL CONTEXT:
+LEGAL REFERENCES:
 {context_block}
 
-Return STRICT JSON:
+Return ONLY VALID JSON:
 {{
- "summary": "Offence name",
- "legal_reasoning": "Why IPC applies",
- "sections": ["IPC XXX"],
+ "summary": "Your response in the EXACT format above",
+ "legal_reasoning": "",
+ "sections": ["Section XXX IPC", "Section YYY POCSO"],
  "citations": [],
- "confidence": "low | medium | high",
- "disclaimer": "This is not legal advice"
+ "confidence": "high"
 }}
+
+Put the ENTIRE formatted response in 'summary'. Leave 'legal_reasoning' empty.
 """
 
 
 def build_punishment_prompt(query: str, contexts: list[dict]) -> str:
     context_block = "\n\n".join(
-        f"[Document: {ctx['source']}]\n{ctx['text']}"
+        f"[Legal Reference]\n{ctx['text']}"
         for ctx in contexts
     )
 
     return f"""
-Extract ONLY punishment from IPC law.
+You are a senior Indian criminal lawyer.
 
-USER QUESTION:
+Answer punishment queries in clean, structured, TEXT format with emojis.
+
+USE THIS EXACT TEXT FORMAT (NOT nested JSON):
+
+📘 Offence:
+(Name of offence)
+
+⛔ Punishment:
+- Imprisonment: ___ years (minimum to maximum)
+- Fine: Rs. ___
+- Bailable/Non-bailable: ___
+- Cognizable/Non-cognizable: ___
+
+⚖️ Additional Info:
+- Special provisions (if any)
+- Repeat offender consequences (if applicable)
+
+🚨 Bail Considerations:
+(1-2 short lines)
+
+Keep it under 10 lines. No disclaimers. No long explanations.
+Output as plain TEXT with emojis, NOT as nested dictionary.
+
+CLIENT QUESTION:
 {query}
 
-LEGAL CONTEXT:
+LEGAL REFERENCES:
 {context_block}
 
-Return STRICT JSON:
+Return ONLY VALID JSON with formatted text in summary:
 {{
- "summary": "Punishment for offence",
- "legal_reasoning": "Punishment details",
- "sections": ["IPC XXX"],
+ "summary": "Your response formatted as TEXT with emojis (not nested objects)",
+ "legal_reasoning": "",
+ "sections": ["Section XXX IPC"],
  "citations": [],
- "confidence": "high",
- "disclaimer": "This is not legal advice"
+ "confidence": "high"
 }}
 """
 
 
 def build_explanation_prompt(query: str, contexts: list[dict]) -> str:
     context_block = "\n\n".join(
-        f"[Document: {ctx['source']}]\n{ctx['text']}"
+        f"[Legal Reference]\n{ctx['text']}"
         for ctx in contexts
     )
 
     return f"""
-Explain the law in simple terms.
+You are a senior Indian criminal lawyer.
 
-USER QUESTION:
+Explain legal concepts in clean, structured format with emojis.
+
+MANDATORY: Use EXACTLY this format with emojis and structure:
+
+📖 Legal Concept:
+(Name in 2-3 words)
+
+📘 Applicable Law:
+- Section ___ (Act name)
+- Section ___ (if multiple)
+
+✅ Definition:
+(2-3 short sentences explaining what it means)
+
+⚖️ Key Requirements/Points:
+- Requirement 1
+- Requirement 2
+- Requirement 3
+
+⛔ Consequences/Punishment (if crime):
+(Brief mention, or write "N/A - Civil matter")
+
+🔍 Practical Note:
+(1-2 lines about how this works in practice)
+
+STRICT RULES:
+- Use the EXACT emoji format shown above
+- Keep total response under 12 lines
+- No long paragraphs
+- No disclaimers
+- Be precise and clear
+
+CLIENT QUESTION:
 {query}
 
-LEGAL CONTEXT:
+LEGAL REFERENCES:
 {context_block}
 
-Return STRICT JSON:
+Return ONLY VALID JSON:
 {{
- "summary": "Concept explanation",
- "legal_reasoning": "Simple explanation",
- "sections": ["IPC XXX"],
+ "summary": "Your response in the EXACT emoji format above",
+ "legal_reasoning": "",
+ "sections": ["Section XXX Act"],
  "citations": [],
- "confidence": "high",
- "disclaimer": "This is not legal advice"
+ "confidence": "high"
 }}
+
+Put the ENTIRE formatted response with emojis in 'summary'. Leave 'legal_reasoning' EMPTY.
 """
 
 
@@ -198,5 +286,25 @@ def generate_legal_response(query: str, contexts: list[dict], intent: str = "off
     response_str = _call_groq_llm(prompt)
     data = _safe_json_parse(response_str)
 
-    data["disclaimer"] = "This is not legal advice"
+    # Fix: If LLM put answer in legal_reasoning instead of summary, swap them
+    if data.get("legal_reasoning") and (not data.get("summary") or data.get("summary") == query or len(data.get("summary", "")) < 50):
+        # If summary is empty, same as query, or too short, use legal_reasoning
+        if data.get("legal_reasoning"):
+            data["summary"] = data["legal_reasoning"]
+            data["legal_reasoning"] = ""
+
+    # Add source PDF citations from retrieved contexts
+    source_citations = []
+    for ctx in contexts:
+        citation = f"Document: {ctx['source']} | Similarity: {ctx['score']:.3f}"
+        if citation not in source_citations:
+            source_citations.append(citation)
+    
+    # Merge with any LLM-generated citations
+    if "citations" in data and data["citations"]:
+        data["citations"] = source_citations + data["citations"]
+    else:
+        data["citations"] = source_citations
+
+    data["disclaimer"] = "This analysis is provided for informational purposes only and does not constitute legal advice."
     return data

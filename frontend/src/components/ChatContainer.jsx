@@ -48,30 +48,8 @@ function ChatContainer() {
 
       setCurrentAnalysis(analysisData);
       
-      const sectionsText = data.sections && data.sections.length > 0 
-        ? "\nRelevant IPC Sections:\n" + data.sections.map(s => `• ${s}`).join("\n")
-        : "";
-      
-      const citationsText = data.citations && data.citations.length > 0
-        ? "\nCitations:\n" + data.citations.map(c => `• ${c}`).join("\n")
-        : "";
-      
-      const confidenceText = data.confidence
-        ? `\nConfidence Level: ${data.confidence.toUpperCase()}`
-        : "";
-      
-      const disclaimerText = data.disclaimer
-        ? `\n\n⚠️ Disclaimer: ${data.disclaimer}`
-        : "";
-      
-      const messageText = [
-        data.summary,
-        data.legal_reasoning,
-        sectionsText,
-        citationsText,
-        confidenceText,
-        disclaimerText
-      ].filter(Boolean).join("\n");
+      // Display response naturally without robotic labels
+      const messageText = data.summary || "No response available.";
       
       const botMsg = { 
         id: `b-${Date.now()}`, 

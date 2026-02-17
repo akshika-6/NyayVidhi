@@ -1,6 +1,7 @@
 from backend.rag.retriever import search_legal_context
 from backend.rag.generator import generate_legal_response
 from backend.services.intent_service import classify_intent
+from backend.services.validation_service import validate_legal_query
 
 
 def ask_legal_question(query: str) -> dict:
@@ -8,6 +9,7 @@ def ask_legal_question(query: str) -> dict:
     Orchestrates the RAG pipeline to answer a legal question.
 
     Steps:
+    0. Validate if the query is a valid legal question
     1. Classifies the intent of the question.
     2. Retrieves relevant legal contexts based on the query.
     3. Generates a structured legal response using the query, contexts, and intent.
@@ -18,6 +20,23 @@ def ask_legal_question(query: str) -> dict:
     Returns:
         dict: A structured JSON response containing summary, legal reasoning, etc.
     """
+    
+    # 0. Validate query first
+    print(f"Service: Validating query: '{query}'")
+    validation = validate_legal_query(query)
+    
+    if not validation["is_valid"]:
+        print(f"Service: Query validation failed - {validation['reason']}")
+        return {
+            "summary": validation["error_message"],
+            "legal_reasoning": "",
+            "sections": [],
+            "citations": [],
+            "confidence": "low",
+            "disclaimer": ""
+        }
+    
+    print(f"Service: Query validated successfully")
     print(f"Service: Analysing intent for query: '{query}'")
     
     # 0. Classify Intent
@@ -31,7 +50,7 @@ def ask_legal_question(query: str) -> dict:
     if not contexts:
         print("Service: No contexts found for the query.")
         return {
-            "summary": "No relevant legal context found to answer your question.",
+            "summary": "I could not find relevant legal information in the available statutes. Please refine your question.",
             "legal_reasoning": "",
             "sections": [],
             "citations": [],
