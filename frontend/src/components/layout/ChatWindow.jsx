@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from "react";
 import { Menu, PanelRight, Shield, Sparkles } from "lucide-react";
 import InputBar from "./InputBar";
 import MessageBubble from "./MessageBubble";
+import LawyerCTA from "../LawyerCTA";
 
 const ChatWindow = ({
   messages,
@@ -20,10 +21,10 @@ const ChatWindow = ({
   }, [messages, isLoading]);
 
   const quickQuestions = [
-    "What is Section 302 of IPC?",
-    "Explain theft and fraud",
-    "What is cyber crime under IPC?",
-    "Define assault and battery"
+    "My husband is asking for divorce without reason",
+    "Someone hacked my Instagram account",
+    "Cheque bounced, what are my options?",
+    "Boss terminated me without notice"
   ];
 
   return (
@@ -126,14 +127,25 @@ const ChatWindow = ({
             </div>
           ) : (
             <div className="space-y-6 pb-4">
-              {messages.map((message) => (
-                <MessageBubble
-                  key={message.id}
-                  text={message.text}
-                  sender={message.sender}
-                  isStreaming={message.isStreaming}
-                />
-              ))}
+              {messages.map((message) => {
+                if (message.type === "lawyer_cta") {
+                  return (
+                    <LawyerCTA
+                      key={message.id}
+                      data={message.data}
+                    />
+                  );
+                }
+
+                return (
+                  <MessageBubble
+                    key={message.id}
+                    text={message.text}
+                    sender={message.sender}
+                    isStreaming={message.isStreaming}
+                  />
+                );
+              })}
               
               {isLoading && (
                 <div className="flex gap-4 w-full animate-fade-in">
