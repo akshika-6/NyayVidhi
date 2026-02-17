@@ -1,8 +1,10 @@
 import React, { useRef, useEffect } from "react";
-import { ArrowUp } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { ArrowUp, AlertCircle } from "lucide-react";
 
 const InputBar = ({ input, setInput, onSendMessage, isLoading }) => {
   const textareaRef = useRef(null);
+  const navigate = useNavigate();
 
   const handleSubmit = (e) => {
     e?.preventDefault();
@@ -30,31 +32,36 @@ const InputBar = ({ input, setInput, onSendMessage, isLoading }) => {
   }, [input]);
 
   return (
-    <div className="w-full max-w-3xl mx-auto px-4 pb-6 pt-2">
-      <div className="relative flex flex-col bg-slate-900/80 backdrop-blur-md border border-white/10 rounded-3xl shadow-lg ring-1 ring-white/5 focus-within:ring-white/10 transition-all">
+    <div className="w-full max-w-4xl mx-auto px-4 pb-6 pt-4">
+      <div className="relative flex flex-col bg-gradient-to-b from-slate-800/60 to-slate-900/60 backdrop-blur-xl border border-indigo-500/20 hover:border-indigo-500/40 rounded-2xl shadow-2xl ring-1 ring-white/5 focus-within:ring-2 focus-within:ring-indigo-500/50 focus-within:border-indigo-500/60 transition-all duration-300 hover:shadow-indigo-500/20">
         <textarea
           ref={textareaRef}
-          className="w-full bg-transparent text-slate-200 placeholder-slate-500 text-[15px] px-4 py-3.5 max-h-[200px] min-h-[52px] resize-none focus:outline-none scrollbar-hide"
+          className="w-full bg-transparent text-slate-100 placeholder-slate-500 text-[15px] px-5 py-4 max-h-[200px] min-h-[56px] resize-none focus:outline-none scrollbar-hide font-medium"
           rows={1}
-          placeholder="Describe your legal situation..."
+          placeholder="Ask about any IPC section, law, or your legal situation..."
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
           disabled={isLoading}
         />
         
-        <div className="absolute right-2 bottom-2">
+        <div className="flex items-center justify-between px-5 pb-4 pt-3 border-t border-slate-700/30">
+          <p className="text-xs text-slate-500 flex items-center gap-1.5 font-medium">
+            <AlertCircle size={13} className="text-indigo-400/70" />
+            Press Enter to send
+          </p>
           <button
             onClick={handleSubmit}
             disabled={isLoading || !input.trim()}
-            className="p-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:bg-slate-700 disabled:text-slate-500 text-white transition-all shadow-sm"
+            className="p-2.5 rounded-lg bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-500 hover:to-indigo-600 disabled:from-slate-700 disabled:to-slate-700 disabled:text-slate-500 text-white transition-all duration-300 shadow-lg hover:shadow-indigo-500/40 disabled:shadow-none font-semibold"
+            title="Send message (Ctrl+Enter)"
           >
-            <ArrowUp size={18} strokeWidth={3} />
+            <ArrowUp size={20} strokeWidth={2.5} />
           </button>
         </div>
       </div>
-      <p className="text-center text-[10px] text-slate-600 mt-2.5">
-        NyayVidhi can make mistakes. Please consult a qualified lawyer.
+      <p className="text-center text-xs text-slate-600 mt-3 flex items-center justify-center gap-2 font-medium flex-wrap">
+        <span>🎓 NyayVidhi Legal Assistant</span>
       </p>
     </div>
   );

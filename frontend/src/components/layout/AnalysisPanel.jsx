@@ -1,13 +1,13 @@
 import React from "react";
-import { X, Scale, AlertTriangle, Book, ChevronRight } from "lucide-react";
+import { X, Scale, AlertTriangle, Book, ChevronRight, Sparkles } from "lucide-react";
 
 const SectionCard = ({ title, children, icon: Icon, className = "" }) => (
-  <div className={`p-4 rounded-xl bg-slate-900 border border-white/5 space-y-2 ${className}`}>
-    <div className="flex items-center gap-2 text-xs font-semibold text-slate-400 uppercase tracking-widest">
-      {Icon && <Icon size={12} />}
-      <span>{title}</span>
+  <div className={`p-4 rounded-xl bg-gradient-to-br from-slate-800/40 to-slate-900/40 border border-indigo-500/10 hover:border-indigo-500/20 space-y-2 transition-all duration-300 hover:shadow-lg hover:shadow-indigo-500/10 ${className}`}>
+    <div className="flex items-center gap-2 text-xs font-bold text-indigo-300 uppercase tracking-widest">
+      {Icon && <Icon size={13} className="text-indigo-400 drop-shadow-lg" />}
+      <span className="tracking-wider">{title}</span>
     </div>
-    <div className="text-sm text-slate-200 leading-relaxed">
+    <div className="text-sm text-slate-300 leading-relaxed font-medium">
       {children}
     </div>
   </div>
@@ -22,27 +22,27 @@ const AnalysisPanel = ({
 }) => {
   if (!isOpen && variant === "desktop") return null;
 
-  const widthClass = variant === "desktop" ? "w-[320px] min-w-[320px]" : "w-full";
+  const widthClass = variant === "desktop" ? "w-[340px] min-w-[340px]" : "w-full";
   const containerClass = variant === "desktop" 
-    ? `hidden md:flex flex-col h-full bg-[#0b1020] border-l border-white/5 ${widthClass}`
-    : `fixed inset-y-0 right-0 z-50 w-[300px] bg-[#0b1020] shadow-2xl transform transition-transform duration-300 ${isOpen ? "translate-x-0" : "translate-x-full"}`;
+    ? `hidden md:flex flex-col h-full bg-gradient-to-b from-slate-900/50 to-slate-950/50 border-l border-indigo-500/10 shadow-2xl shadow-indigo-500/10 backdrop-blur-xl ${widthClass}`
+    : `fixed inset-y-0 right-0 z-50 w-[320px] bg-gradient-to-b from-slate-900 to-slate-950 shadow-2xl transform transition-transform duration-300 ${isOpen ? "translate-x-0" : "translate-x-full"}`;
 
   const renderContent = () => {
     if (isLoading) {
       return (
         <div className="p-6 space-y-4 animate-pulse">
-           <div className="h-6 bg-slate-800 rounded w-1/3 mb-6"></div>
-           <div className="h-32 bg-slate-800 rounded-xl"></div>
-           <div className="h-20 bg-slate-800 rounded-xl"></div>
+           <div className="h-6 bg-gradient-to-r from-indigo-500/20 to-indigo-600/20 rounded w-2/3"></div>
+           <div className="h-32 bg-gradient-to-br from-indigo-500/10 to-indigo-600/10 rounded-xl border border-indigo-500/20"></div>
+           <div className="h-20 bg-gradient-to-br from-indigo-500/10 to-indigo-600/10 rounded-xl border border-indigo-500/20"></div>
         </div>
       );
     }
 
     if (!analysis) {
       return (
-        <div className="flex flex-col items-center justify-center h-full p-8 text-center opacity-40">
-           <Scale size={32} className="mb-4 text-slate-500" />
-           <p className="text-sm text-slate-400">Analysis details will appear here</p>
+        <div className="flex flex-col items-center justify-center h-full p-6 text-center">
+           <Scale size={36} className="mb-4 text-indigo-400/50 drop-shadow-lg" />
+           <p className="text-sm text-slate-400 font-medium">Analysis details will appear here</p>
         </div>
       );
     }
@@ -50,35 +50,39 @@ const AnalysisPanel = ({
     return (
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
          {/* Summary */}
-         <div className="mb-2">
-            <h2 className="text-lg font-semibold text-white mb-1">{analysis.summary}</h2>
+         <div className="mb-4 pb-4 border-b border-indigo-500/10 space-y-2">
+            <h3 className="text-xs font-bold text-indigo-300 uppercase tracking-widest flex items-center gap-2">
+              <span className="w-1 h-1 rounded-full bg-indigo-400"></span>
+              Summary
+            </h3>
+            <h2 className="text-base font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-300 to-indigo-100 leading-snug">{analysis.summary}</h2>
          </div>
 
          {/* Tags */}
-         <div className="flex flex-wrap gap-2 mb-2">
+         <div className="flex flex-wrap gap-2 mb-4">
             {analysis.sections?.map((sec, i) => (
-               <span key={i} className="px-2.5 py-1 bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 text-xs rounded-md font-mono">
+               <span key={i} className="px-3 py-1.5 bg-gradient-to-r from-indigo-500/30 to-indigo-600/30 text-indigo-200 border border-indigo-500/40 hover:border-indigo-400/60 text-xs rounded-lg font-bold transition-all duration-300 hover:shadow-lg hover:shadow-indigo-500/20 backdrop-blur-sm">
                  {sec}
                </span>
             ))}
             {analysis.confidence && (
-              <span className={`px-2.5 py-1 text-xs rounded-md border ${
-                 analysis.confidence.toLowerCase() === 'high' ? 'bg-green-500/10 text-green-400 border-green-500/20' : 
-                 analysis.confidence.toLowerCase() === 'medium' ? 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20' : 
-                 'bg-red-500/10 text-red-400 border-red-500/20'
+              <span className={`px-3 py-1.5 text-xs rounded-lg border font-bold transition-all duration-300 ${
+                 analysis.confidence.toLowerCase() === 'high' ? 'bg-gradient-to-r from-green-500/30 to-green-600/30 text-green-200 border-green-500/40 hover:border-green-400/60 hover:shadow-lg hover:shadow-green-500/20' : 
+                 analysis.confidence.toLowerCase() === 'medium' ? 'bg-gradient-to-r from-yellow-500/30 to-yellow-600/30 text-yellow-200 border-yellow-500/40 hover:border-yellow-400/60 hover:shadow-lg hover:shadow-yellow-500/20' : 
+                 'bg-gradient-to-r from-red-500/30 to-red-600/30 text-red-200 border-red-500/40 hover:border-red-400/60 hover:shadow-lg hover:shadow-red-500/20'
               }`}>
-                {analysis.confidence} Confidence
+                {analysis.confidence}
               </span>
             )}
          </div>
 
-         <SectionCard title="Reasoning" icon={Book}>
+         <SectionCard title="Legal Reasoning" icon={Book}>
             {analysis.legal_reasoning}
          </SectionCard>
 
-         <div className="mt-4 p-3 rounded-lg bg-orange-500/5 border border-orange-500/10 flex gap-2 items-start">
-            <AlertTriangle size={14} className="text-orange-400 mt-0.5 shrink-0" />
-            <p className="text-xs text-orange-200/60 leading-relaxed">
+         <div className="p-4 rounded-xl bg-gradient-to-br from-amber-500/10 to-amber-600/10 border border-amber-500/20 hover:border-amber-500/30 flex gap-3 items-start transition-all duration-300 hover:shadow-lg hover:shadow-amber-500/10">
+            <AlertTriangle size={16} className="text-amber-400 mt-0.5 shrink-0 drop-shadow-lg" />
+            <p className="text-xs text-amber-200/80 leading-relaxed font-medium">
                {analysis.disclaimer}
             </p>
          </div>
@@ -89,12 +93,19 @@ const AnalysisPanel = ({
   return (
     <>
       {variant === "mobile" && isOpen && (
-         <div className="fixed inset-0 bg-black/50 z-40" onClick={onClose} />
+         <div className="fixed inset-0 bg-black/50 z-40 backdrop-blur-sm" onClick={onClose} />
       )}
       <aside className={containerClass}>
-        <div className="shrink-0 h-14 border-b border-white/5 flex items-center justify-between px-4">
-          <span className="font-semibold text-slate-300 text-sm">Case Analysis</span>
-          <button onClick={onClose} className="p-1.5 text-slate-500 hover:text-white rounded-lg hover:bg-white/5 transition-colors">
+        <div className="shrink-0 h-14 border-b border-indigo-500/10 flex items-center justify-between px-4 bg-gradient-to-r from-slate-900/95 via-indigo-900/20 to-slate-950/95 backdrop-blur-xl">
+          <span className="font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-300 to-indigo-100 text-sm flex items-center gap-2">
+            <Sparkles size={14} className="text-indigo-400 drop-shadow-lg" />
+            Analysis
+          </span>
+          <button 
+            onClick={onClose} 
+            className="p-1.5 text-slate-400 hover:text-indigo-300 rounded-lg hover:bg-indigo-500/10 transition-all duration-300 border border-transparent hover:border-indigo-500/30 hover:shadow-lg hover:shadow-indigo-500/20"
+            title="Close panel"
+          >
             <X size={16} />
           </button>
         </div>

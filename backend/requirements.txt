@@ -9,3 +9,4 @@ pdfplumber
 numpy
 scikit-learn
 python-dotenv
+groq

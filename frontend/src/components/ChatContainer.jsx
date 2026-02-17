@@ -5,7 +5,7 @@ import AnalysisPanel from "./layout/AnalysisPanel";
 import { PanelRightOpen, PanelRightClose } from "lucide-react";
 
 // Mock Service Call Wrapper (Replace with real later if needed, mostly logic is same)
-const API_URL = "http://127.0.0.1:8000/ask";
+const API_URL = "http://127.0.0.1:8001/ask";
 
 function ChatContainer() {
   const [messages, setMessages] = useState([]);
@@ -13,7 +13,7 @@ function ChatContainer() {
   const [isLoading, setIsLoading] = useState(false);
   const [input, setInput] = useState("");
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [isAnalysisOpen, setIsAnalysisOpen] = useState(true); // Default open on desktop if analysis exists
+  const [isAnalysisOpen, setIsAnalysisOpen] = useState(false); // Default closed
 
   const handleSendMessage = useCallback(async (question) => {
     if (isLoading || !question.trim()) return;
@@ -41,22 +41,45 @@ function ChatContainer() {
          summary: data.summary,
          legal_reasoning: data.legal_reasoning,
          sections: data.sections || [],
+         citations: data.citations || [],
          confidence: data.confidence,
          disclaimer: data.disclaimer
       };
 
       setCurrentAnalysis(analysisData);
       
+      const sectionsText = data.sections && data.sections.length > 0 
+        ? "\nRelevant IPC Sections:\n" + data.sections.map(s => `• ${s}`).join("\n")
+        : "";
+      
+      const citationsText = data.citations && data.citations.length > 0
+        ? "\nCitations:\n" + data.citations.map(c => `• ${c}`).join("\n")
+        : "";
+      
+      const confidenceText = data.confidence
+        ? `\nConfidence Level: ${data.confidence.toUpperCase()}`
+        : "";
+      
+      const disclaimerText = data.disclaimer
+        ? `\n\n⚠️ Disclaimer: ${data.disclaimer}`
+        : "";
+      
+      const messageText = [
+        data.summary,
+        data.legal_reasoning,
+        sectionsText,
+        citationsText,
+        confidenceText,
+        disclaimerText
+      ].filter(Boolean).join("\n");
+      
       const botMsg = { 
         id: `b-${Date.now()}`, 
         sender: "assistant", 
-        text: data.summary + "\n\n" + data.legal_reasoning 
+        text: messageText
       };
       
       setMessages(prev => [...prev, botMsg]);
-      
-      // Auto open analysis on success if desktop
-      if (window.innerWidth >= 768) setIsAnalysisOpen(true);
 
     } catch (e) {
       console.error(e);
@@ -73,7 +96,10 @@ function ChatContainer() {
   };
 
   return (
-    <div className="flex h-screen w-full bg-[#0b1020] text-slate-100 font-sans overflow-hidden selection:bg-indigo-500/30">
+    <div className="flex h-screen w-full bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-slate-100 font-sans overflow-hidden selection:bg-indigo-500/30">
+      
+      {/* Top Header Line */}
+      <div className="fixed top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-indigo-500 to-transparent z-40" />
       
       {/* 1. Sidebar (Fixed Width) */}
       <Sidebar 
