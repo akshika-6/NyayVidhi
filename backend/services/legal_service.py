@@ -4,6 +4,7 @@ from backend.services.intent_service import classify_intent
 from backend.services.validation_service import validate_legal_query
 from backend.services.translation_service import translate_query_to_english, translate_response_from_english
 from backend.services.language_detection import detect_language
+from backend.services.judgment_service import find_relevant_judgments
 
 
 def translate_error(msg: str, lang: str) -> str:
@@ -89,6 +90,16 @@ def ask_legal_question(query: str, preferred_language: str = "English") -> dict:
         language=preferred_language
     )
     
+    # 2.5. Get relevant judgments (for legal queries with context)
+    judgment_data = None
+    if contexts and len(contexts) > 0:  # Show judgments for any query with legal context
+        # Get context summary for judgment analysis
+        context_summary = " ".join([ctx["text"][:200] for ctx in contexts[:2]])
+        judgment_result = find_relevant_judgments(processing_query, context_summary)
+        if judgment_result.get("success") and judgment_result.get("data"):
+            judgment_data = judgment_result.get("data")
+            print(f"Service: Successfully fetched {len(judgment_data.get('judgments', []))} judgments")
+    
     # 3. Fallback translation: Always use Sarvam to ensure response is in target language
     # This ensures reliable translation even if LLM doesn't generate in the correct language
     if preferred_language != "English" and structured_response.get("summary"):
@@ -116,6 +127,10 @@ def ask_legal_question(query: str, preferred_language: str = "English") -> dict:
                 translated_disclaimer = translate_response_from_english(disclaimer, preferred_language)
                 if translated_disclaimer and translated_disclaimer != disclaimer:
                     structured_response["disclaimer"] = translated_disclaimer
+
+    # Add judgment comparison data if available
+    if judgment_data:
+        structured_response["judgment_comparison"] = judgment_data
 
     return structured_response
 

@@ -118,6 +118,26 @@ const AnalysisPanel = ({
            </SectionCard>
          )}
 
+         {/* Judgment Summary */}
+         {analysis.judgment_comparison && analysis.judgment_comparison.judgments && analysis.judgment_comparison.judgments.length > 0 && (
+           <SectionCard title="Case Law" icon={Scale}>
+             <div className="space-y-2">
+               <div className="text-xs font-semibold text-indigo-300 mb-2">
+                 {analysis.judgment_comparison.judgments.length} Relevant Judgments Found
+               </div>
+               {analysis.judgment_comparison.judgments.map((judgment, i) => (
+                 <div key={i} className="text-xs border-l-2 border-indigo-500/30 pl-2 mb-2">
+                   <div className="font-semibold text-slate-200">{judgment.case_name}</div>
+                   <div className="text-slate-400">{judgment.citation}</div>
+                 </div>
+               ))}
+               <div className="text-xs text-slate-400 mt-2">
+                 View full comparison in chat window →
+               </div>
+             </div>
+           </SectionCard>
+         )}
+
          {analysis.disclaimer && (
            <div className="p-4 rounded-xl bg-gradient-to-br from-amber-500/10 to-amber-600/10 border border-amber-500/20 hover:border-amber-500/30 flex gap-3 items-start transition-all duration-300 hover:shadow-lg hover:shadow-amber-500/10">
              <AlertTriangle size={16} className="text-amber-400 mt-0.5 shrink-0 drop-shadow-lg" />

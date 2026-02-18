@@ -6,10 +6,10 @@ import { PanelRightOpen } from "lucide-react";
 
 const API_BASE_URL = "http://127.0.0.1:8000";
 
-function ChatContainer({ messages, setMessages }) {
+function ChatContainer() {
   const [allChats, setAllChats] = useState([]);
   const [activeChatId, setActiveChatId] = useState(null);
-  // messages and setMessages are props
+  const [messages, setMessages] = useState([]);
   const [currentAnalysis, setCurrentAnalysis] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [input, setInput] = useState("");
@@ -106,7 +106,6 @@ function ChatContainer({ messages, setMessages }) {
 
     try {
       // Parallel API Calls: Legal AI + Lawyer Consultation
-      // We use Promise.allSettled so one failure doesn't block the other
       const [askResult, lawyerResult] = await Promise.allSettled([
         fetch(`${API_BASE_URL}/ask`, {
           method: "POST",
@@ -131,12 +130,14 @@ function ChatContainer({ messages, setMessages }) {
         try {
           const askData = await askResult.value.json();
 
+          console.log("=== BACKEND RESPONSE ===", askData);
+          console.log("Judgment comparison data:", askData.judgment_comparison);
+
           // Ensure summary is always a string
           let summaryText = "";
           if (typeof askData.summary === 'string') {
             summaryText = askData.summary;
           } else if (askData.summary && typeof askData.summary === 'object') {
-            // Convert object to formatted string
             summaryText = Object.entries(askData.summary)
               .map(([key, value]) => `${key}: ${value}`)
               .join('\n\n');
@@ -150,8 +151,11 @@ function ChatContainer({ messages, setMessages }) {
             sections: askData.sections || [],
             citations: askData.citations || [],
             confidence: askData.confidence,
-            disclaimer: askData.disclaimer
+            disclaimer: askData.disclaimer,
+            judgment_comparison: askData.judgment_comparison || null
           };
+
+          console.log("=== ANALYSIS DATA ===", analysisData);
 
           const botMsg = {
             id: `b-${Date.now()}`,
@@ -169,9 +173,11 @@ function ChatContainer({ messages, setMessages }) {
       }
 
       // Handle Lawyer Matcher Result
+      console.log("=== LAWYER API RESULT ===", lawyerResult);
       if (lawyerResult.status === 'fulfilled' && lawyerResult.value.ok) {
         try {
           const lawyerData = await lawyerResult.value.json();
+          console.log("=== LAWYER DATA ===", lawyerData);
           const ctaMsg = {
             id: `m-${Date.now()}`,
             sender: "assistant",
@@ -185,12 +191,14 @@ function ChatContainer({ messages, setMessages }) {
               ai_summary: lawyerData.ai_summary
             }
           };
+          console.log("=== ADDING LAWYER CTA MSG ===", ctaMsg);
           finalMessages.push(ctaMsg);
         } catch (e) {
           console.error("Failed to parse lawyer response", e);
         }
       }
 
+      console.log("=== FINAL MESSAGES ===", finalMessages);
       setMessages(finalMessages);
       setCurrentAnalysis(analysisData);
 
@@ -205,7 +213,6 @@ function ChatContainer({ messages, setMessages }) {
     } finally {
       setIsLoading(false);
     }
-
   }, [isLoading, messages, activeChatId, currentAnalysis, preferredLanguage]);
 
   const handleNewChat = () => {
@@ -258,6 +265,7 @@ function ChatContainer({ messages, setMessages }) {
           isAnalysisOpen={isAnalysisOpen}
           preferredLanguage={preferredLanguage}
           onChangeLanguage={setPreferredLanguage}
+          currentAnalysis={currentAnalysis}
         />
 
         {!isAnalysisOpen && currentAnalysis && (
