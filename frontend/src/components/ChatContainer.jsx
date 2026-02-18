@@ -6,11 +6,10 @@ import { PanelRightOpen } from "lucide-react";
 
 const API_BASE_URL = "http://127.0.0.1:8000";
 
-function ChatContainer({ messages, setMessages }) { // Accept messages and setMessages as props
-function ChatContainer() {
+function ChatContainer({ messages, setMessages }) {
   const [allChats, setAllChats] = useState([]);
   const [activeChatId, setActiveChatId] = useState(null);
-  const [messages, setMessages] = useState([]);
+  // messages and setMessages are props
   const [currentAnalysis, setCurrentAnalysis] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [input, setInput] = useState("");
@@ -62,7 +61,7 @@ function ChatContainer() {
     setAllChats(prev => {
       const chatIndex = prev.findIndex(c => c.id === chatId);
       let newChats = [...prev];
-      
+
       if (chatIndex >= 0) {
         newChats[chatIndex] = {
           ...newChats[chatIndex],
@@ -79,7 +78,7 @@ function ChatContainer() {
           timestamp: Date.now()
         }, ...prev];
       }
-      
+
       const sorted = newChats.sort((a, b) => b.timestamp - a.timestamp).slice(0, 20);
       localStorage.setItem("nyayvidhi_chats", JSON.stringify(sorted));
       return sorted;
@@ -91,7 +90,7 @@ function ChatContainer() {
 
     setIsLoading(true);
     let currentId = activeChatId;
-    
+
     if (!currentId) {
       currentId = `chat-${Date.now()}`;
       setActiveChatId(currentId);
@@ -100,10 +99,10 @@ function ChatContainer() {
     const userMsg = { id: `u-${Date.now()}`, sender: "user", text: question };
     const newMessages = [...messages, userMsg];
     setMessages(newMessages);
-    
+
     saveToHistory(currentId, newMessages, currentAnalysis);
-    
-    if (window.innerWidth < 768) setIsAnalysisOpen(false); 
+
+    if (window.innerWidth < 768) setIsAnalysisOpen(false);
 
     try {
       // Parallel API Calls: Legal AI + Lawyer Consultation
@@ -112,7 +111,7 @@ function ChatContainer() {
         fetch(`${API_BASE_URL}/ask`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ 
+          body: JSON.stringify({
             question,
             preferred_language: preferredLanguage || "English"
           }),
@@ -129,44 +128,44 @@ function ChatContainer() {
 
       // Handle Legal AI Result
       if (askResult.status === 'fulfilled' && askResult.value.ok) {
-          try {
-              const askData = await askResult.value.json();
-              
-              // Ensure summary is always a string
-              let summaryText = "";
-              if (typeof askData.summary === 'string') {
-                  summaryText = askData.summary;
-              } else if (askData.summary && typeof askData.summary === 'object') {
-                  // Convert object to formatted string
-                  summaryText = Object.entries(askData.summary)
-                      .map(([key, value]) => `${key}: ${value}`)
-                      .join('\n\n');
-              } else {
-                  summaryText = askData.summary ? String(askData.summary) : "No response available.";
-              }
-              
-              analysisData = {
-                  summary: summaryText,
-                  legal_reasoning: askData.legal_reasoning,
-                  sections: askData.sections || [],
-                  citations: askData.citations || [],
-                  confidence: askData.confidence,
-                  disclaimer: askData.disclaimer
-              };
-              
-              const botMsg = {
-                  id: `b-${Date.now()}`,
-                  sender: "assistant",
-                  text: summaryText
-              };
-              finalMessages.push(botMsg);
-          } catch (e) {
-              console.error("Failed to parse AI response", e);
-              finalMessages.push({ id: `e-${Date.now()}`, sender: "assistant", text: "I found some legal info, but couldn't process it correctly." });
+        try {
+          const askData = await askResult.value.json();
+
+          // Ensure summary is always a string
+          let summaryText = "";
+          if (typeof askData.summary === 'string') {
+            summaryText = askData.summary;
+          } else if (askData.summary && typeof askData.summary === 'object') {
+            // Convert object to formatted string
+            summaryText = Object.entries(askData.summary)
+              .map(([key, value]) => `${key}: ${value}`)
+              .join('\n\n');
+          } else {
+            summaryText = askData.summary ? String(askData.summary) : "No response available.";
           }
+
+          analysisData = {
+            summary: summaryText,
+            legal_reasoning: askData.legal_reasoning,
+            sections: askData.sections || [],
+            citations: askData.citations || [],
+            confidence: askData.confidence,
+            disclaimer: askData.disclaimer
+          };
+
+          const botMsg = {
+            id: `b-${Date.now()}`,
+            sender: "assistant",
+            text: summaryText
+          };
+          finalMessages.push(botMsg);
+        } catch (e) {
+          console.error("Failed to parse AI response", e);
+          finalMessages.push({ id: `e-${Date.now()}`, sender: "assistant", text: "I found some legal info, but couldn't process it correctly." });
+        }
       } else {
-          console.error("Legal AI API failed", askResult.reason || askResult.value?.statusText);
-          finalMessages.push({ id: `e-${Date.now()}`, sender: "assistant", text: "I'm having trouble accessing the legal database right now, but let me check for lawyers who can help you." });
+        console.error("Legal AI API failed", askResult.reason || askResult.value?.statusText);
+        finalMessages.push({ id: `e-${Date.now()}`, sender: "assistant", text: "I'm having trouble accessing the legal database right now, but let me check for lawyers who can help you." });
       }
 
       // Handle Lawyer Matcher Result
@@ -183,7 +182,7 @@ function ChatContainer() {
               urgency: lawyerData.urgency,
               matched_lawyers: lawyerData.matched_lawyers || [],
               rate_limit: lawyerData.rate_limit,
-              ai_summary: lawyerData.ai_summary 
+              ai_summary: lawyerData.ai_summary
             }
           };
           finalMessages.push(ctaMsg);
@@ -194,7 +193,7 @@ function ChatContainer() {
 
       setMessages(finalMessages);
       setCurrentAnalysis(analysisData);
-      
+
       saveToHistory(currentId, finalMessages, analysisData);
 
     } catch (e) {
@@ -206,7 +205,7 @@ function ChatContainer() {
     } finally {
       setIsLoading(false);
     }
-  }, [isLoading, setMessages]); // Add setMessages to dependency array
+
   }, [isLoading, messages, activeChatId, currentAnalysis, preferredLanguage]);
 
   const handleNewChat = () => {
@@ -225,61 +224,61 @@ function ChatContainer() {
 
   return (
     <div className="flex h-screen w-full bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-slate-100 font-sans overflow-hidden selection:bg-indigo-500/30">
-      
+
       <div className="fixed top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-indigo-500 to-transparent z-40" />
-      
-      <Sidebar 
-         onClearConversation={handleNewChat} 
-         history={allChats}
-         activeChatId={activeChatId}
-         onSelectHistory={handleSelectChat}
-         isOpen={isSidebarOpen} 
-         onClose={() => setIsSidebarOpen(false)}
-         variant="desktop" 
+
+      <Sidebar
+        onClearConversation={handleNewChat}
+        history={allChats}
+        activeChatId={activeChatId}
+        onSelectHistory={handleSelectChat}
+        isOpen={isSidebarOpen}
+        onClose={() => setIsSidebarOpen(false)}
+        variant="desktop"
       />
-      <Sidebar 
-         onClearConversation={handleNewChat} 
-         history={allChats}
-         activeChatId={activeChatId}
-         onSelectHistory={handleSelectChat}
-         isOpen={isSidebarOpen} 
-         onClose={() => setIsSidebarOpen(false)}
-         variant="mobile" 
+      <Sidebar
+        onClearConversation={handleNewChat}
+        history={allChats}
+        activeChatId={activeChatId}
+        onSelectHistory={handleSelectChat}
+        isOpen={isSidebarOpen}
+        onClose={() => setIsSidebarOpen(false)}
+        variant="mobile"
       />
 
       <main className="flex-1 flex flex-col min-w-0 relative">
-         <ChatWindow
-            messages={messages}
-            isLoading={isLoading}
-            input={input}
-            setInput={setInput}
-            onSendMessage={handleSendMessage}
-            onOpenSidebar={() => setIsSidebarOpen(true)}
-            onOpenAnalysis={() => setIsAnalysisOpen(true)}
-            isAnalysisOpen={isAnalysisOpen}
-            preferredLanguage={preferredLanguage}
-            onChangeLanguage={setPreferredLanguage}
-         />
-         
-         {!isAnalysisOpen && currentAnalysis && (
-            <button 
-              onClick={() => setIsAnalysisOpen(true)}
-              className="absolute top-4 right-4 p-2 bg-slate-800 rounded-lg hover:bg-slate-700 text-slate-300 hidden md:block z-10 border border-white/5"
-              title="Show Analysis"
-            >
-               <PanelRightOpen size={20} />
-            </button>
-         )}
+        <ChatWindow
+          messages={messages}
+          isLoading={isLoading}
+          input={input}
+          setInput={setInput}
+          onSendMessage={handleSendMessage}
+          onOpenSidebar={() => setIsSidebarOpen(true)}
+          onOpenAnalysis={() => setIsAnalysisOpen(true)}
+          isAnalysisOpen={isAnalysisOpen}
+          preferredLanguage={preferredLanguage}
+          onChangeLanguage={setPreferredLanguage}
+        />
+
+        {!isAnalysisOpen && currentAnalysis && (
+          <button
+            onClick={() => setIsAnalysisOpen(true)}
+            className="absolute top-4 right-4 p-2 bg-slate-800 rounded-lg hover:bg-slate-700 text-slate-300 hidden md:block z-10 border border-white/5"
+            title="Show Analysis"
+          >
+            <PanelRightOpen size={20} />
+          </button>
+        )}
       </main>
 
-      <AnalysisPanel 
-        analysis={currentAnalysis} 
+      <AnalysisPanel
+        analysis={currentAnalysis}
         isOpen={isAnalysisOpen}
         onClose={() => setIsAnalysisOpen(false)}
         variant="desktop"
       />
-      <AnalysisPanel 
-        analysis={currentAnalysis} 
+      <AnalysisPanel
+        analysis={currentAnalysis}
         isOpen={isAnalysisOpen}
         onClose={() => setIsAnalysisOpen(false)}
         variant="mobile"

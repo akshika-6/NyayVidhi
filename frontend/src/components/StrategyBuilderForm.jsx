@@ -63,7 +63,7 @@ const StrategyBuilderForm = ({ onStrategyGeneration }) => {
 
     try {
       console.log("Sending fetch request...");
-      const response = await fetch('http://127.0.0.1:8001/strategy/generate', {
+      const response = await fetch('http://127.0.0.1:8000/strategy/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),

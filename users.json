@@ -20,5 +20,17 @@
         "email": "aditya@gmail.com",
         "password": "$pbkdf2-sha256$29000$09p7b815Tykl5LxXynlP6Q$4Jn9.KNFrpfgob7SI8MGk4NWmT7Ew40RH.Ho5DtZffU",
         "preferred_language": "Bengali"
+    },
+    "testuser@test.com": {
+        "name": "TestUser",
+        "email": "testuser@test.com",
+        "password": "$pbkdf2-sha256$29000$Zuy9V4oRYqx1LkVorXWOsQ$ojIWMntF.LLZfdxBt0IVGdL1U.aDCZLMfbwzXj8GNp4",
+        "preferred_language": "English"
+    },
+    "kanishka12@gmail.com": {
+        "name": "Kanishka",
+        "email": "kanishka12@gmail.com",
+        "password": "$pbkdf2-sha256$29000$ZawVImRMaQ3BOAdgjBECYA$wlp8LFv1TsCy49JS5uFvQk2pvywstiO5kjFjkQmsjus",
+        "preferred_language": "English"
     }
 }

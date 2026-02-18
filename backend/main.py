@@ -64,4 +64,3 @@ class StrategyRequest(BaseModel):
 @app.post("/strategy/generate")
 def get_case_strategy(req: StrategyRequest):
     return generate_case_strategy(req.model_dump())
-    return ask_legal_question(req.question, req.preferred_language)
