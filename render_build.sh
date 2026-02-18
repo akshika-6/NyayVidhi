@@ -11,4 +11,7 @@ cd ..
 
 # Install backend dependencies
 echo "Installing backend dependencies..."
+# Use a lighter torch to fit in 512MB RAM
+pip install --upgrade pip
+pip install torch --index-url https://download.pytorch.org/whl/cpu
 pip install -r requirements.txt
