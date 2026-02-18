@@ -37,8 +37,9 @@ class QueryRequest(BaseModel):
     question: str
     preferred_language: str = "English"
 
-@app.get("/")
-def root():
+@app.get("/api")
+@app.get("/api/status")
+def api_status():
     return {
         "message": "NyayVidhi API is running",
         "version": "2.0.0",
