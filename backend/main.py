@@ -10,11 +10,13 @@ from backend.api.chat_routes import router as chat_router
 from backend.services.strategy_service import generate_case_strategy
 from backend.api.auth import router as auth_router
 
+print("FastAPI: Initializing app...")
 app = FastAPI(
     title="NyayVidhi Legal AI",
     description="India's Free Legal Awareness & Guidance Platform",
     version="2.0.0"
 )
+print("FastAPI: App initialized.")
 
 app.include_router(auth_router)
 
@@ -70,21 +72,20 @@ def get_case_strategy(req: StrategyRequest):
 
 # Serve static files from the React app
 frontend_path = os.path.join(os.getcwd(), "frontend", "dist")
+print(f"FastAPI: Looking for frontend at {frontend_path}")
 
 if os.path.exists(frontend_path):
     # Mount the assets directory first
     assets_path = os.path.join(frontend_path, "assets")
     if os.path.exists(assets_path):
+        print(f"FastAPI: Mounting assets from {assets_path}")
         app.mount("/assets", StaticFiles(directory=assets_path), name="assets")
 
     @app.get("/{full_path:path}")
     async def serve_react_app(request: Request, full_path: str):
         # If the path starts with api routes, let it pass (though FastAPI should handle it first)
-        # These are existing prefixes in main.py or included routers
         api_prefixes = ["/auth", "/lawyer", "/chat", "/ask", "/strategy"]
         if any(full_path.startswith(p.lstrip("/")) for p in api_prefixes):
-             # This part might not be strictly necessary because of Route order, 
-             # but it's a good safety measure if someone hits a non-existent API route.
              return {"detail": "Not Found"}
              
         # Check if the file exists in the static directory
@@ -94,5 +95,8 @@ if os.path.exists(frontend_path):
             
         # Otherwise serve index.html for client-side routing
         return FileResponse(os.path.join(frontend_path, "index.html"))
+    print("FastAPI: Frontend routes configured.")
 else:
     print(f"Warning: Static files path not found at {frontend_path}")
+
+print("FastAPI: Startup complete.")

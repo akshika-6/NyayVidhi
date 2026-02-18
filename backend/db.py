@@ -13,6 +13,8 @@ db = None
 def get_db():
     global client, db
     if client is None:
+        if not MONGODB_URL:
+            raise ValueError("MONGODB_URL environment variable is not set")
         client = AsyncIOMotorClient(MONGODB_URL)
         db = client[DB_NAME]
     return db
