@@ -3,6 +3,7 @@ import { Menu, PanelRight, Shield, Sparkles } from "lucide-react";
 import InputBar from "./InputBar";
 import MessageBubble from "./MessageBubble";
 import LawyerCTA from "../LawyerCTA";
+import JudgmentComparison from "../JudgmentComparison";
 
 const ChatWindow = ({
   messages,
@@ -15,6 +16,7 @@ const ChatWindow = ({
   isAnalysisOpen,
   preferredLanguage,
   onChangeLanguage,
+  currentAnalysis,
 }) => {
   const messagesEndRef = useRef(null);
 
@@ -149,9 +151,10 @@ const ChatWindow = ({
                </div>
             </div>
           ) : (
-            <div className="space-y-6 pb-4">
-              {messages.map((message) => {
+            <div className="space-y-4">
+              {messages.map((message, index) => {
                 if (message.type === "lawyer_cta") {
+                  console.log("=== RENDERING LAWYER CTA ===", message);
                   return (
                     <LawyerCTA
                       key={message.id}
@@ -160,13 +163,26 @@ const ChatWindow = ({
                   );
                 }
 
+                // Find the last assistant message (excluding lawyer_cta)
+                const assistantMessages = messages.filter(m => m.sender === "assistant" && m.type !== "lawyer_cta");
+                const isLastAssistantMessage = message.sender === "assistant" && 
+                  message.type !== "lawyer_cta" &&
+                  assistantMessages.length > 0 &&
+                  message.id === assistantMessages[assistantMessages.length - 1].id;
+
                 return (
-                  <MessageBubble
-                    key={message.id}
-                    text={message.text}
-                    sender={message.sender}
-                    isStreaming={message.isStreaming}
-                  />
+                  <React.Fragment key={message.id}>
+                    <MessageBubble
+                      text={message.text}
+                      sender={message.sender}
+                      isStreaming={message.isStreaming}
+                    />
+                    
+                    {/* Show judgment comparison for the last assistant message if available */}
+                    {isLastAssistantMessage && currentAnalysis?.judgment_comparison && (
+                      <JudgmentComparison judgmentData={currentAnalysis.judgment_comparison} />
+                    )}
+                  </React.Fragment>
                 );
               })}
               

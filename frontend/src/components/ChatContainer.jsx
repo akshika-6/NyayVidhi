@@ -6,7 +6,6 @@ import { PanelRightOpen } from "lucide-react";
 
 const API_BASE_URL = "http://127.0.0.1:8000";
 
-function ChatContainer({ messages, setMessages }) { // Accept messages and setMessages as props
 function ChatContainer() {
   const [allChats, setAllChats] = useState([]);
   const [activeChatId, setActiveChatId] = useState(null);
@@ -132,6 +131,10 @@ function ChatContainer() {
           try {
               const askData = await askResult.value.json();
               
+              // DEBUG: Log the full response
+              console.log("=== BACKEND RESPONSE ===", askData);
+              console.log("Judgment comparison data:", askData.judgment_comparison);
+              
               // Ensure summary is always a string
               let summaryText = "";
               if (typeof askData.summary === 'string') {
@@ -151,8 +154,11 @@ function ChatContainer() {
                   sections: askData.sections || [],
                   citations: askData.citations || [],
                   confidence: askData.confidence,
-                  disclaimer: askData.disclaimer
+                  disclaimer: askData.disclaimer,
+                  judgment_comparison: askData.judgment_comparison || null
               };
+              
+              console.log("=== ANALYSIS DATA ===", analysisData);
               
               const botMsg = {
                   id: `b-${Date.now()}`,
@@ -170,9 +176,11 @@ function ChatContainer() {
       }
 
       // Handle Lawyer Matcher Result
+      console.log("=== LAWYER API RESULT ===", lawyerResult);
       if (lawyerResult.status === 'fulfilled' && lawyerResult.value.ok) {
         try {
           const lawyerData = await lawyerResult.value.json();
+          console.log("=== LAWYER DATA ===", lawyerData);
           const ctaMsg = {
             id: `m-${Date.now()}`,
             sender: "assistant",
@@ -186,12 +194,14 @@ function ChatContainer() {
               ai_summary: lawyerData.ai_summary 
             }
           };
+          console.log("=== ADDING LAWYER CTA MSG ===", ctaMsg);
           finalMessages.push(ctaMsg);
         } catch (e) {
           console.error("Failed to parse lawyer response", e);
         }
       }
 
+      console.log("=== FINAL MESSAGES ===", finalMessages);
       setMessages(finalMessages);
       setCurrentAnalysis(analysisData);
       
@@ -206,7 +216,6 @@ function ChatContainer() {
     } finally {
       setIsLoading(false);
     }
-  }, [isLoading, setMessages]); // Add setMessages to dependency array
   }, [isLoading, messages, activeChatId, currentAnalysis, preferredLanguage]);
 
   const handleNewChat = () => {
@@ -259,6 +268,7 @@ function ChatContainer() {
             isAnalysisOpen={isAnalysisOpen}
             preferredLanguage={preferredLanguage}
             onChangeLanguage={setPreferredLanguage}
+            currentAnalysis={currentAnalysis}
          />
          
          {!isAnalysisOpen && currentAnalysis && (
