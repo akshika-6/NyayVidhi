@@ -26,10 +26,11 @@ TOP_K = 5
 
 @lru_cache(maxsize=1)
 def load_resources():
+    """Lazy load vector database and model only when needed"""
     print("Loading vector database...")
     
     if not INDEX_PATH.exists() or not META_PATH.exists():
-        print(f"Vector Database not found at {VECTORSTORE_DIR}. Please run ingest.py first.")
+        print(f"Vector Database not found at {VECTORSTORE_DIR}. RAG features disabled.")
         return None, None, None
 
     try:
@@ -38,12 +39,15 @@ def load_resources():
         with open(META_PATH, "rb") as f:
             metadata = pickle.load(f)
 
+        # Only load model if we have the data
+        print("Loading sentence transformer model...")
         model = SentenceTransformer(EMBEDDING_MODEL)
 
         print("Retriever ready.")
         return index, metadata, model
     except Exception as e:
         print(f"Error loading vector store: {e}")
+        print("RAG features will be disabled.")
         return None, None, None
 
 

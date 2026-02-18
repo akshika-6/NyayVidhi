@@ -13,15 +13,18 @@ pymongo==4.16.0
 dnspython==2.8.0
 groq==1.0.0
 requests==2.32.5
-sentence-transformers
-transformers
-torch --index-url https://download.pytorch.org/whl/cpu
-faiss-cpu
-pdfplumber==0.11.9
-PyMuPDF==1.27.1
-pypdfium2==5.4.0
-pillow==12.1.1
-numpy
-scikit-learn
 jinja2
 markupsafe
+numpy
+
+# Optional RAG dependencies (commented out for free tier deployment)
+# Uncomment these if deploying with sufficient memory (>2GB)
+# sentence-transformers
+# transformers
+# torch --index-url https://download.pytorch.org/whl/cpu
+# faiss-cpu
+# scikit-learn
+# pdfplumber==0.11.9
+# PyMuPDF==1.27.1
+# pypdfium2==5.4.0
+# pillow==12.1.1

@@ -1,10 +1,18 @@
-from backend.rag.retriever import search_legal_context
-from backend.rag.generator import generate_legal_response
 from backend.services.intent_service import classify_intent
 from backend.services.validation_service import validate_legal_query
 from backend.services.translation_service import translate_query_to_english, translate_response_from_english
 from backend.services.language_detection import detect_language
 from backend.services.judgment_service import find_relevant_judgments
+
+# Lazy import RAG modules to avoid loading heavy models on startup
+def get_rag_modules():
+    try:
+        from backend.rag.retriever import search_legal_context
+        from backend.rag.generator import generate_legal_response
+        return search_legal_context, generate_legal_response
+    except Exception as e:
+        print(f"RAG modules unavailable: {e}")
+        return None, None
 
 
 def translate_error(msg: str, lang: str) -> str:
@@ -65,7 +73,23 @@ def ask_legal_question(query: str, preferred_language: str = "English") -> dict:
     # 0. Classify Intent
     intent = classify_intent(processing_query)
     
-    # 1. Call search_legal_context
+    # 1. Call search_legal_context (with lazy loading)
+    search_legal_context, generate_legal_response = get_rag_modules()
+    
+    if search_legal_context is None or generate_legal_response is None:
+        print("Service: RAG system unavailable - using fallback response")
+        summary = "The AI legal assistant is currently unavailable due to server resources. Please use the Free Lawyer Consultation feature for personalized legal guidance."
+        if preferred_language != "English":
+            summary = translate_response_from_english(summary, preferred_language)
+        return {
+            "summary": summary,
+            "legal_reasoning": "",
+            "sections": [],
+            "citations": [],
+            "confidence": "low",
+            "disclaimer": ""
+        }
+    
     contexts = search_legal_context(processing_query)
 
     if not contexts:
