@@ -1,12 +1,10 @@
 from fastapi import APIRouter, HTTPException, Depends, status
 from pydantic import BaseModel, EmailStr
 from backend.core.auth import get_password_hash, verify_password, create_access_token
-import json
+from backend.db import get_db
 import os
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
-
-USERS_FILE = "users.json"
 
 class UserCreate(BaseModel):
     name: str
@@ -18,20 +16,13 @@ class UserLogin(BaseModel):
     email: EmailStr
     password: str
 
-def load_users():
-    if not os.path.exists(USERS_FILE):
-        return {}
-    with open(USERS_FILE, "r") as f:
-        return json.load(f)
-
-def save_users(users):
-    with open(USERS_FILE, "w") as f:
-        json.dump(users, f, indent=4)
-
 @router.post("/signup")
 async def signup(user_data: UserCreate):
-    users = load_users()
-    if user_data.email in users:
+    db = get_db()
+    
+    # Check if user already exists
+    existing_user = await db.users.find_one({"email": user_data.email})
+    if existing_user:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Email already registered"
@@ -39,13 +30,14 @@ async def signup(user_data: UserCreate):
     
     hashed_password = get_password_hash(user_data.password)
 
-    users[user_data.email] = {
+    new_user = {
         "name": user_data.name,
         "email": user_data.email,
         "password": hashed_password,
         "preferred_language": user_data.preferred_language
     }
-    save_users(users)
+    
+    await db.users.insert_one(new_user)
     
     access_token = create_access_token(data={"sub": user_data.email})
     return {
@@ -60,8 +52,9 @@ async def signup(user_data: UserCreate):
 
 @router.post("/login")
 async def login(credentials: UserLogin):
-    users = load_users()
-    user = users.get(credentials.email)
+    db = get_db()
+    
+    user = await db.users.find_one({"email": credentials.email})
     
     if not user or not verify_password(credentials.password, user["password"]):
         raise HTTPException(

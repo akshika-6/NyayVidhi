@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { API_BASE_URL } from '../config/api';
 import { Briefcase, FileText, Users, Landmark, IndianRupee, AlertTriangle, MapPin, Send } from 'lucide-react';
 
 const InputField = ({ icon, label, children }) => (
@@ -63,7 +64,7 @@ const StrategyBuilderForm = ({ onStrategyGeneration }) => {
 
     try {
       console.log("Sending fetch request...");
-      const response = await fetch('http://127.0.0.1:8000/strategy/generate', {
+      const response = await fetch(`${API_BASE_URL}/strategy/generate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),

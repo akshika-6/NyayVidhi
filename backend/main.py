@@ -1,4 +1,7 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
+import os
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
 from backend.services.legal_service import ask_legal_question
@@ -64,3 +67,32 @@ class StrategyRequest(BaseModel):
 @app.post("/strategy/generate")
 def get_case_strategy(req: StrategyRequest):
     return generate_case_strategy(req.model_dump())
+
+# Serve static files from the React app
+frontend_path = os.path.join(os.getcwd(), "frontend", "dist")
+
+if os.path.exists(frontend_path):
+    # Mount the assets directory first
+    assets_path = os.path.join(frontend_path, "assets")
+    if os.path.exists(assets_path):
+        app.mount("/assets", StaticFiles(directory=assets_path), name="assets")
+
+    @app.get("/{full_path:path}")
+    async def serve_react_app(request: Request, full_path: str):
+        # If the path starts with api routes, let it pass (though FastAPI should handle it first)
+        # These are existing prefixes in main.py or included routers
+        api_prefixes = ["/auth", "/lawyer", "/chat", "/ask", "/strategy"]
+        if any(full_path.startswith(p.lstrip("/")) for p in api_prefixes):
+             # This part might not be strictly necessary because of Route order, 
+             # but it's a good safety measure if someone hits a non-existent API route.
+             return {"detail": "Not Found"}
+             
+        # Check if the file exists in the static directory
+        file_path = os.path.join(frontend_path, full_path)
+        if os.path.isfile(file_path):
+            return FileResponse(file_path)
+            
+        # Otherwise serve index.html for client-side routing
+        return FileResponse(os.path.join(frontend_path, "index.html"))
+else:
+    print(f"Warning: Static files path not found at {frontend_path}")

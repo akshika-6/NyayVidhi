@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { X, Send, Bot, User } from 'lucide-react';
+import { API_BASE_URL as BASE_URL } from '../config/api';
 import LawyerInfoPanel from './LawyerInfoPanel';
 import MessageBubble from './MessageBubble';
 
-const API_BASE_URL = "http://127.0.0.1:8000";
+const API_BASE_URL = BASE_URL;
 
 const ChatModal = ({ lawyer, onClose }) => {
   const [messages, setMessages] = useState([]);
@@ -48,7 +49,7 @@ const ChatModal = ({ lawyer, onClose }) => {
       });
       if (!res.ok) throw new Error('API error');
       const data = await res.json();
-      
+
       const assistantMessage = { sender: 'assistant', text: data.lawyer_reply };
       setMessages(prev => [...prev, assistantMessage]);
 
@@ -61,28 +62,28 @@ const ChatModal = ({ lawyer, onClose }) => {
   };
 
   const handleSlotSelect = async (slotInfo) => {
-    if(isBooking || bookedSlot) return;
+    if (isBooking || bookedSlot) return;
     setIsBooking(true);
     try {
-        const res = await fetch(`${API_BASE_URL}/chat/book_slot`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(slotInfo),
-        });
-        if (!res.ok) {
-            const errorData = await res.json();
-            throw new Error(errorData.detail || 'Failed to book slot.');
-        }
-        const data = await res.json();
-        setBookedSlot(data.booked_slot);
-        const confirmationMessage = { sender: 'assistant', text: data.confirmation_message };
-        setMessages(prev => [...prev, confirmationMessage]);
+      const res = await fetch(`${API_BASE_URL}/chat/book_slot`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(slotInfo),
+      });
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.detail || 'Failed to book slot.');
+      }
+      const data = await res.json();
+      setBookedSlot(data.booked_slot);
+      const confirmationMessage = { sender: 'assistant', text: data.confirmation_message };
+      setMessages(prev => [...prev, confirmationMessage]);
 
     } catch (error) {
-        const errorMessage = { sender: 'assistant', text: `Booking failed: ${error.message}` };
-        setMessages(prev => [...prev, errorMessage]);
+      const errorMessage = { sender: 'assistant', text: `Booking failed: ${error.message}` };
+      setMessages(prev => [...prev, errorMessage]);
     } finally {
-        setIsBooking(false);
+      setIsBooking(false);
     }
   };
 
@@ -101,7 +102,7 @@ const ChatModal = ({ lawyer, onClose }) => {
         {/* Chat Area */}
         <div className="flex-1 flex flex-col h-full">
           <div className="p-4 border-b border-slate-800">
-             <h2 className="text-base font-semibold text-white text-center">Consult with {lawyer.name || lawyer.full_name}</h2>
+            <h2 className="text-base font-semibold text-white text-center">Consult with {lawyer.name || lawyer.full_name}</h2>
           </div>
           <div className="flex-1 overflow-y-auto p-4 space-y-4">
             {messages.map((msg, index) => (
@@ -132,11 +133,11 @@ const ChatModal = ({ lawyer, onClose }) => {
         </div>
 
         {/* Lawyer Info Panel */}
-        <LawyerInfoPanel 
-            lawyer={lawyer} 
-            onSlotSelect={handleSlotSelect}
-            bookedSlot={bookedSlot}
-            isBooking={isBooking}
+        <LawyerInfoPanel
+          lawyer={lawyer}
+          onSlotSelect={handleSlotSelect}
+          bookedSlot={bookedSlot}
+          isBooking={isBooking}
         />
       </div>
     </div>

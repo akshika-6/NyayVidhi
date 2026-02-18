@@ -3,8 +3,9 @@ import Sidebar from "./layout/Sidebar";
 import ChatWindow from "./layout/ChatWindow";
 import AnalysisPanel from "./layout/AnalysisPanel";
 import { PanelRightOpen } from "lucide-react";
+import { API_BASE_URL as BASE_URL } from "../config/api";
 
-const API_BASE_URL = "http://127.0.0.1:8000";
+const API_BASE_URL = BASE_URL;
 
 function ChatContainer() {
   const [allChats, setAllChats] = useState([]);
